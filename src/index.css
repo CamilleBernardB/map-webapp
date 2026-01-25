@@ -53,6 +53,12 @@ body {
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.35);
 }
 
+.button.secondary.past-hints-button {
+  background: rgba(56, 189, 248, 0.5);
+  color: #0f172a;
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
 .hud {
   position: absolute;
   top: 16px;

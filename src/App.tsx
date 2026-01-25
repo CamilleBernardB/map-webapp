@@ -163,7 +163,9 @@ export default function App() {
     ? `${STATUS_LABELS[status]} · ${statusMessage}`
     : STATUS_LABELS[status];
 
-  const hintIndices = [...revealedHints].sort((a, b) => a - b);
+  const hintIndices = [...revealedHints]
+    .filter((index) => completedIndices.has(index))
+    .sort((a, b) => a - b);
   const activeHintIndex =
     selectedHintIndex !== null ? selectedHintIndex : hintIndices[0] ?? null;
   const isShowMessage = activeLandmark?.task.app === "showMessage";
@@ -201,7 +203,7 @@ export default function App() {
         )}
         <div className="overlay-row">
           <button
-            className="button secondary overlay-button"
+            className="button secondary overlay-button past-hints-button"
             type="button"
             onClick={() => setModalView("hints")}
             disabled={revealedHints.size === 0}
@@ -321,7 +323,14 @@ export default function App() {
       </div>
 
       {modalView && (
-        <div className="modal-backdrop">
+        <div
+          className="modal-backdrop"
+          onClick={() => {
+            if (modalView !== "task") {
+              setModalView(null);
+            }
+          }}
+        >
           <div className="modal" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header">
               <div className="hud-label">
