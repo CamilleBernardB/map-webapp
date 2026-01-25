@@ -1,5 +1,23 @@
 [
   {
+    "id": "StartPoint",
+    "name": "Welcome",
+    "lat": 48.85358485204833,
+    "lng": 2.348039397246975,
+    "radiusMeters": 3500,
+    "task": {
+      "app": "photoPrompt",
+      "title": "Welcome to Paris!",
+      "payload": {
+        "prompt": "See your first hint.",
+        "reward": 50
+      },
+      "hint": {
+        "type": "text",
+        "value": "Find the old lady of the Parisians."
+      }
+    }
+  },  {
     "id": "pier-39",
     "name": "Pier 39",
     "lat": 37.808673,

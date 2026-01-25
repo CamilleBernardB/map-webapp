@@ -51,6 +51,7 @@ export default function App() {
   const [pastHintsOpen, setPastHintsOpen] = useState(false);
   const [selectedHintIndex, setSelectedHintIndex] = useState<number | null>(null);
   const [taskMessage, setTaskMessage] = useState("");
+  const [showLandmarkList, setShowLandmarkList] = useState(false);
 
   useEffect(() => {
     const handleEvent = (event: GeoEvent) => {
@@ -213,18 +214,19 @@ export default function App() {
             >
               Past hints
             </button>
-            {activeLandmark && activeInRange && (
+            {activeLandmark && (
               <>
                 <button
-                  className="button"
+                  className={`button ${activeInRange ? "" : "secondary"}`}
                   type="button"
+                  disabled={!activeInRange}
                   onClick={() => {
                     runAppTask(activeLandmark.task.app, activeLandmark.task.payload);
                     setOpenedTaskIndex(counter);
                     setTaskMessage(`Opened: ${activeLandmark.task.title}`);
                   }}
                 >
-                  Open task app
+                  {activeLandmark.task.title}
                 </button>
                 <button
                   className="button secondary"
@@ -345,6 +347,18 @@ export default function App() {
         )}
 
         {debugAllowed && debugMode && (
+          <div className="hud-row">
+            <button
+              className="button secondary"
+              type="button"
+              onClick={() => setShowLandmarkList((prev) => !prev)}
+            >
+              {showLandmarkList ? "Hide landmarks" : "Show landmarks"}
+            </button>
+          </div>
+        )}
+
+        {debugAllowed && debugMode && showLandmarkList && (
           <div className="landmark-list">
             <div className="hud-label">Landmarks (within 1km)</div>
             {(() => {
