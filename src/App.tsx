@@ -321,48 +321,46 @@ export default function App() {
       </div>
 
       {modalView && (
-        <div className="modal-backdrop" onClick={() => setModalView(null)}>
+        <div className="modal-backdrop">
           <div className="modal" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header">
               <div className="hud-label">
-                {modalView === "task"
+                {modalView === "task" && isShowMessage && activeLandmark
+                  ? activeLandmark.task.title
+                  : modalView === "task"
                   ? "Task"
                   : modalView === "hints"
                   ? "Past hints"
                   : "Landmarks"}
               </div>
-              <button
-                className="button secondary"
-                type="button"
-                onClick={() => setModalView(null)}
-              >
-                Close
-              </button>
             </div>
 
             {modalView === "task" && activeLandmark && (
               <div className="modal-body">
-                <div className="modal-title">{activeLandmark.task.title}</div>
-                {taskMessage && <div className="task-message">{taskMessage}</div>}
-                <div className="task-hint">{renderHint(activeLandmark.task.hint)}</div>
-                <div className="task-meta">
-                  App: {activeLandmark.task.app}
-                  {activeDistance !== null ? ` · ${Math.round(activeDistance)}m` : ""}
-                </div>
                 {isShowMessage ? (
-                  <button
-                    className="button"
-                    type="button"
-                    disabled={openedTaskIndex !== counter}
-                    onClick={() => {
-                      resolveCurrentTask();
-                      setModalView(null);
-                    }}
-                  >
-                    OK
-                  </button>
+                  <>
+                    <div className="task-hint">{renderHint(activeLandmark.task.hint)}</div>
+                    <button
+                      className="button"
+                      type="button"
+                      disabled={openedTaskIndex !== counter}
+                      onClick={() => {
+                        resolveCurrentTask();
+                        setModalView(null);
+                      }}
+                    >
+                      OK
+                    </button>
+                  </>
                 ) : (
                   <>
+                    <div className="modal-title">{activeLandmark.task.title}</div>
+                    {taskMessage && <div className="task-message">{taskMessage}</div>}
+                    <div className="task-hint">{renderHint(activeLandmark.task.hint)}</div>
+                    <div className="task-meta">
+                      App: {activeLandmark.task.app}
+                      {activeDistance !== null ? ` · ${Math.round(activeDistance)}m` : ""}
+                    </div>
                     <pre className="task-payload">
                       {JSON.stringify(activeLandmark.task.payload, null, 2)}
                     </pre>
