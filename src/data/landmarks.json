@@ -1,5 +1,24 @@
 [
   {
+    "id": "StartPoint0",
+    "name": "Welcome",
+    "lat": 48.85358485204833,
+    "lng": 2.348039397246975,
+    "radiusMeters": 3500,
+    "task": {
+      "app": "askWordle",
+      "title": "Welcome to Paris 0 !",
+      "payload": {
+        "answer": "fixer",
+        "reward": 50
+      },
+      "hint": {
+        "type": "text",
+        "value": "Go to the infernal place."
+      }
+    }
+  },
+  {
     "id": "StartPoint",
     "name": "Welcome",
     "lat": 48.85358485204833,
@@ -57,58 +76,23 @@
     }
   },
   {
-    "id": "pier-39",
-    "name": "Pier 39",
-    "lat": 37.808673,
-    "lng": -122.409821,
-    "radiusMeters": 35,
+    "id": "eiffel-tower",
+    "name": "Eiffel Tower",
+    "lat": 48.858370,
+    "lng": 2.294481,
+    "radiusMeters": 100,
     "task": {
-      "app": "photoPrompt",
-      "title": "Sea Lion Snapshot",
+      "app": "askPuzzle",
+      "title": "Math Riddle",
       "payload": {
-        "prompt": "Capture the sea lions and the bay view.",
-        "reward": 50
+        "question": "What is 7 multiplied by 6?",
+        "answer": "42"
       },
       "hint": {
         "type": "text",
-        "value": "Find the docks with barking sea lions and a view of the Golden Gate."
-      }
-    }
-  },
-  {
-    "id": "mission-dolores",
-    "name": "Mission Dolores Park",
-    "lat": 37.759615,
-    "lng": -122.426906,
-    "radiusMeters": 40,
-    "task": {
-      "app": "triviaCard",
-      "title": "Mission Hill Trivia",
-      "payload": [
-        "Find the historic Mission façade.",
-        "Spot the palm grove on the hill.",
-        "Share your favorite park view."
-      ],
-      "hint": {
-        "type": "text",
-        "value": "Look for the hillside park with city views and a historic mission nearby."
-      }
-    }
-  },
-  {
-    "id": "notre-dame-basilica",
-    "name": "Notre-Dame de Paris",
-    "lat": 48.853579,
-    "lng": 2.348025,
-    "radiusMeters": 50,
-    "task": {
-      "app": "audioPing",
-      "title": "Cathedral Echo",
-      "payload": "Play the bell chime and show a restoration update.",
-      "hint": {
-        "type": "text",
-        "value": "Seek the island cathedral whose bells once defined the Paris skyline."
+        "value": "Hint: Congratulations! You have completed the tour of Paris!"
       }
     }
   }
+
 ]
