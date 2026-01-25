@@ -24,6 +24,14 @@ Requires `certs/dev-key.pem` and `certs/dev-cert.pem` in the project root.
 VITE_DEV_HTTPS=true npm run dev -- --host
 ```
 
+## (Optional) Debug GPS Input
+
+Enables the manual GPS override panel in the HUD.
+
+```bash
+VITE_DEBUG_GPS=true npm run dev
+```
+
 ## Build
 
 ```bash

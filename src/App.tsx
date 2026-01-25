@@ -28,11 +28,16 @@ const STATUS_CLASS: Record<GeoStatus, string> = {
 };
 
 export default function App() {
+  const debugAllowed = import.meta.env.VITE_DEBUG_GPS === "true";
   const watcher = useMemo(() => createGeoWatcher(), []);
   const [status, setStatus] = useState<GeoStatus>("idle");
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [fix, setFix] = useState<GeoFix | null>(null);
   const [follow, setFollow] = useState(true);
+  const [debugMode, setDebugMode] = useState(false);
+  const [manualLat, setManualLat] = useState("37.7749");
+  const [manualLng, setManualLng] = useState("-122.4194");
+  const [manualAccuracy, setManualAccuracy] = useState("10");
 
   useEffect(() => {
     const handleEvent = (event: GeoEvent) => {
@@ -46,17 +51,38 @@ export default function App() {
     };
 
     const unsubscribe = watcher.subscribe(handleEvent);
-    watcher.start();
+    if (!(debugAllowed && debugMode)) {
+      watcher.start();
+    }
 
     return () => {
       unsubscribe();
       watcher.stop();
     };
-  }, [watcher]);
+  }, [watcher, debugMode, debugAllowed]);
 
   const handleRetry = () => {
     watcher.stop();
     watcher.start();
+  };
+
+  const handleApplyManual = () => {
+    const lat = Number.parseFloat(manualLat);
+    const lng = Number.parseFloat(manualLng);
+    const accuracy = Math.max(0, Number.parseFloat(manualAccuracy));
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      setFix({
+        lat,
+        lng,
+        accuracy: Number.isFinite(accuracy) ? accuracy : 10,
+        timestamp: Date.now()
+      });
+      setStatus("watching");
+      setStatusMessage("Debug");
+    } else {
+      setStatus("error");
+      setStatusMessage("Invalid debug coordinates");
+    }
   };
 
   const latText = fix ? fix.lat.toFixed(6) : "--";
@@ -111,6 +137,64 @@ export default function App() {
             )}
           </div>
         </div>
+
+        {debugAllowed && (
+          <div className="hud-row">
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={debugMode}
+                onChange={(event) => {
+                  const enabled = event.target.checked;
+                  setDebugMode(enabled);
+                  if (enabled) {
+                    watcher.stop();
+                  } else {
+                    setStatus("waiting");
+                    setStatusMessage("Waiting for GPS");
+                    watcher.start();
+                  }
+                }}
+              />
+              <span>Debug location</span>
+            </label>
+          </div>
+        )}
+
+        {debugAllowed && debugMode && (
+          <div className="hud-row">
+            <div className="field">
+              <div className="hud-label">Manual Lat</div>
+              <input
+                className="input"
+                value={manualLat}
+                onChange={(event) => setManualLat(event.target.value)}
+                inputMode="decimal"
+              />
+            </div>
+            <div className="field">
+              <div className="hud-label">Manual Lng</div>
+              <input
+                className="input"
+                value={manualLng}
+                onChange={(event) => setManualLng(event.target.value)}
+                inputMode="decimal"
+              />
+            </div>
+            <div className="field">
+              <div className="hud-label">Accuracy (m)</div>
+              <input
+                className="input"
+                value={manualAccuracy}
+                onChange={(event) => setManualAccuracy(event.target.value)}
+                inputMode="numeric"
+              />
+            </div>
+            <button className="button" type="button" onClick={handleApplyManual}>
+              Apply
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
