@@ -25,15 +25,15 @@
     "lng": 2.3480388257029783,
     "radiusMeters": 50,
     "task": {
-      "app": "showMessage",
+      "app": "showImage",
       "title": "Notre-Dame de Paris",
       "payload": {
         "prompt": "See your first hint.",
         "reward": 50
       },
       "hint": {
-        "type": "text",
-        "value": "Go to Sacré Coeur!"
+        "type": "image",
+        "value": "/hint/sacre-coeur-paris-1.webp"
       }
     }
   },

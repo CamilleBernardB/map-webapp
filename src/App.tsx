@@ -168,7 +168,9 @@ export default function App() {
     .sort((a, b) => a - b);
   const activeHintIndex =
     selectedHintIndex !== null ? selectedHintIndex : hintIndices[0] ?? null;
-  const isShowMessage = activeLandmark?.task.app === "showMessage";
+  const isInlineTask =
+    activeLandmark?.task.app === "showMessage" ||
+    activeLandmark?.task.app === "showImage";
 
   return (
     <div className="app">
@@ -334,7 +336,7 @@ export default function App() {
           <div className="modal" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header">
               <div className="hud-label">
-                {modalView === "task" && isShowMessage && activeLandmark
+                {modalView === "task" && isInlineTask && activeLandmark
                   ? activeLandmark.task.title
                   : modalView === "task"
                   ? "Task"
@@ -346,7 +348,7 @@ export default function App() {
 
             {modalView === "task" && activeLandmark && (
               <div className="modal-body">
-                {isShowMessage ? (
+                {isInlineTask ? (
                   <>
                     <div className="task-hint">{renderHint(activeLandmark.task.hint)}</div>
                     <button
