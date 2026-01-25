@@ -199,6 +199,11 @@ body {
   font-size: 12px;
 }
 
+.landmark-summary {
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.7);
+}
+
 .landmark-marker {
   width: 16px;
   height: 16px;

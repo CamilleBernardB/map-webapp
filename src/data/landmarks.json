@@ -12,5 +12,12 @@
     "lat": 37.759615,
     "lng": -122.426906,
     "radiusMeters": 40
+  },
+  {
+    "id": "notre-dame-basilica",
+    "name": "Notre-Dame de Paris",
+    "lat": 48.853579,
+    "lng": 2.348025,
+    "radiusMeters": 50
   }
 ]

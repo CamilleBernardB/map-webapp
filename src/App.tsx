@@ -259,24 +259,52 @@ export default function App() {
 
         {debugAllowed && debugMode && (
           <div className="landmark-list">
-            <div className="hud-label">Landmarks</div>
-            {LANDMARKS.map((landmark) => {
-              const distance = fix ? haversineMeters(fix, landmark) : null;
-              const isTriggered = triggeredIds.has(landmark.id);
-              const isActive = activeLandmark?.id === landmark.id;
+            <div className="hud-label">Landmarks (within 1km)</div>
+            {(() => {
+              const maxDistance = 1000;
+              const withDistance = fix
+                ? LANDMARKS.map((landmark) => ({
+                    landmark,
+                    distance: haversineMeters(fix, landmark)
+                  }))
+                : [];
+              const nearby = withDistance
+                .filter((entry) => entry.distance <= maxDistance)
+                .sort((a, b) => a.distance - b.distance);
+              const otherCount = LANDMARKS.length - nearby.length;
+
+              if (!fix) {
+                return <div className="landmark-item">Waiting for position...</div>;
+              }
+
               return (
-                <div
-                  key={landmark.id}
-                  className={`landmark-item ${isActive ? "active" : ""}`}
-                >
-                  <span>{landmark.name}</span>
-                  <span className="landmark-meta">
-                    {distance ? `${Math.round(distance)}m` : "--"}
-                    {isTriggered ? " · triggered" : ""}
-                  </span>
-                </div>
+                <>
+                  {nearby.length === 0 ? (
+                    <div className="landmark-item">No nearby landmarks.</div>
+                  ) : (
+                    nearby.map(({ landmark, distance }) => {
+                      const isTriggered = triggeredIds.has(landmark.id);
+                      const isActive = activeLandmark?.id === landmark.id;
+                      return (
+                        <div
+                          key={landmark.id}
+                          className={`landmark-item ${isActive ? "active" : ""}`}
+                        >
+                          <span>{landmark.name}</span>
+                          <span className="landmark-meta">
+                            {Math.round(distance)}m
+                            {isTriggered ? " · triggered" : ""}
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div className="landmark-summary">
+                    {otherCount} other landmark{otherCount === 1 ? "" : "s"} outside 1km.
+                  </div>
+                </>
               );
-            })}
+            })()}
           </div>
         )}
       </div>
