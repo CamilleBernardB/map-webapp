@@ -7,9 +7,14 @@
     "radiusMeters": 35,
     "task": {
       "app": "photoPrompt",
+      "title": "Sea Lion Snapshot",
       "payload": {
         "prompt": "Capture the sea lions and the bay view.",
         "reward": 50
+      },
+      "hint": {
+        "type": "text",
+        "value": "Find the docks with barking sea lions and a view of the Golden Gate."
       }
     }
   },
@@ -21,11 +26,16 @@
     "radiusMeters": 40,
     "task": {
       "app": "triviaCard",
+      "title": "Mission Hill Trivia",
       "payload": [
         "Find the historic Mission façade.",
         "Spot the palm grove on the hill.",
         "Share your favorite park view."
-      ]
+      ],
+      "hint": {
+        "type": "text",
+        "value": "Look for the hillside park with city views and a historic mission nearby."
+      }
     }
   },
   {
@@ -36,7 +46,12 @@
     "radiusMeters": 50,
     "task": {
       "app": "audioPing",
-      "payload": "Play the bell chime and show a restoration update."
+      "title": "Cathedral Echo",
+      "payload": "Play the bell chime and show a restoration update.",
+      "hint": {
+        "type": "text",
+        "value": "Seek the island cathedral whose bells once defined the Paris skyline."
+      }
     }
   }
 ]
