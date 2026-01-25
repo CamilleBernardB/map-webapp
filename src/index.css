@@ -32,6 +32,27 @@ body {
   inset: 0;
 }
 
+.overlay-actions {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 3;
+}
+
+.overlay-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.overlay-button {
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.35);
+}
+
 .hud {
   position: absolute;
   top: 16px;
@@ -202,6 +223,61 @@ body {
 .landmark-summary {
   font-size: 12px;
   color: rgba(226, 232, 240, 0.7);
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 5;
+}
+
+.modal {
+  width: min(520px, 100%);
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.5);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.task-payload {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #e2e8f0;
+  font-size: 12px;
+  white-space: pre-wrap;
 }
 
 .task-card {

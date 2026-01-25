@@ -48,10 +48,11 @@ export default function App() {
   const [completedIndices, setCompletedIndices] = useState<Set<number>>(() => new Set());
   const [openedTaskIndex, setOpenedTaskIndex] = useState<number | null>(null);
   const [revealedHints, setRevealedHints] = useState<Set<number>>(() => new Set([0]));
-  const [pastHintsOpen, setPastHintsOpen] = useState(false);
   const [selectedHintIndex, setSelectedHintIndex] = useState<number | null>(null);
   const [taskMessage, setTaskMessage] = useState("");
-  const [showLandmarkList, setShowLandmarkList] = useState(false);
+  const [modalView, setModalView] = useState<"task" | "hints" | "landmarks" | null>(
+    null
+  );
 
   useEffect(() => {
     const handleEvent = (event: GeoEvent) => {
@@ -136,6 +137,10 @@ export default function App() {
     ? `${STATUS_LABELS[status]} · ${statusMessage}`
     : STATUS_LABELS[status];
 
+  const hintIndices = [...revealedHints].sort((a, b) => a - b);
+  const activeHintIndex =
+    selectedHintIndex !== null ? selectedHintIndex : hintIndices[0] ?? null;
+
   return (
     <div className="app">
       <MapView
@@ -145,6 +150,42 @@ export default function App() {
         debugMode={debugAllowed && debugMode}
         landmarks={LANDMARKS}
       />
+
+      <div className="overlay-actions">
+        {activeLandmark && activeInRange && (
+          <button
+            className="button overlay-button"
+            type="button"
+            onClick={() => {
+              runAppTask(activeLandmark.task.app, activeLandmark.task.payload);
+              setOpenedTaskIndex(counter);
+              setTaskMessage(`Opened: ${activeLandmark.task.title}`);
+              setModalView("task");
+            }}
+          >
+            {activeLandmark.task.title}
+          </button>
+        )}
+        <div className="overlay-row">
+          <button
+            className="button secondary overlay-button"
+            type="button"
+            onClick={() => setModalView("hints")}
+            disabled={revealedHints.size === 0}
+          >
+            Past hints
+          </button>
+          {debugAllowed && debugMode && (
+            <button
+              className="button secondary overlay-button"
+              type="button"
+              onClick={() => setModalView("landmarks")}
+            >
+              Landmarks
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="hud">
         <div className="hud-row">
@@ -186,107 +227,6 @@ export default function App() {
             )}
           </div>
         </div>
-
-        <div className="hud-row task-card">
-          <div className="task-copy">
-            <div className="hud-label">Active task</div>
-            <div className="hud-value">
-              {activeLandmark ? activeLandmark.task.title : "All tasks complete"}
-            </div>
-            {activeLandmark && (
-              <div className="task-meta">
-                {fix && activeDistance !== null
-                  ? `${Math.round(activeDistance)}m away`
-                  : "Waiting for position..."}
-              </div>
-            )}
-          </div>
-          {activeLandmark && revealedHints.has(counter) && (
-            <div className="task-hint">{renderHint(activeLandmark.task.hint)}</div>
-          )}
-          {taskMessage && <div className="task-message">{taskMessage}</div>}
-          <div className="hud-row">
-            <button
-              className="button secondary"
-              type="button"
-              onClick={() => setPastHintsOpen((prev) => !prev)}
-              disabled={completedIndices.size === 0}
-            >
-              Past hints
-            </button>
-            {activeLandmark && (
-              <>
-                <button
-                  className={`button ${activeInRange ? "" : "secondary"}`}
-                  type="button"
-                  disabled={!activeInRange}
-                  onClick={() => {
-                    runAppTask(activeLandmark.task.app, activeLandmark.task.payload);
-                    setOpenedTaskIndex(counter);
-                    setTaskMessage(`Opened: ${activeLandmark.task.title}`);
-                  }}
-                >
-                  {activeLandmark.task.title}
-                </button>
-                <button
-                  className="button secondary"
-                  type="button"
-                  disabled={openedTaskIndex !== counter}
-                  onClick={() => {
-                    setCompletedIndices((prev) => {
-                      const next = new Set(prev);
-                      next.add(counter);
-                      return next;
-                    });
-                    setOpenedTaskIndex(null);
-                    const nextIndex = counter + 1;
-                    if (nextIndex < LANDMARKS.length) {
-                      setCounter(nextIndex);
-                      setRevealedHints((prev) => {
-                        const next = new Set(prev);
-                        next.add(nextIndex);
-                        return next;
-                      });
-                      setTaskMessage(`Hint unlocked: ${LANDMARKS[nextIndex].task.title}`);
-                    } else {
-                      setCounter(LANDMARKS.length);
-                      setTaskMessage("All tasks completed.");
-                    }
-                  }}
-                >
-                  Mark resolved
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {pastHintsOpen && completedIndices.size > 0 && (
-          <div className="past-hints">
-            <div className="hud-label">Past hints</div>
-            <div className="hint-list">
-              {LANDMARKS.slice(0, counter).map((landmark, index) => (
-                <button
-                  className={`hint-item ${
-                    selectedHintIndex === index ? "active" : ""
-                  }`}
-                  type="button"
-                  key={landmark.id}
-                  onClick={() => setSelectedHintIndex(index)}
-                >
-                  {index + 1}. {landmark.task.title}
-                </button>
-              ))}
-            </div>
-            {selectedHintIndex !== null &&
-              selectedHintIndex < counter &&
-              LANDMARKS[selectedHintIndex] && (
-                <div className="hint-detail">
-                  {renderHint(LANDMARKS[selectedHintIndex].task.hint)}
-                </div>
-              )}
-          </div>
-        )}
 
         {debugAllowed && (
           <div className="hud-row">
@@ -345,73 +285,162 @@ export default function App() {
             </button>
           </div>
         )}
-
-        {debugAllowed && debugMode && (
-          <div className="hud-row">
-            <button
-              className="button secondary"
-              type="button"
-              onClick={() => setShowLandmarkList((prev) => !prev)}
-            >
-              {showLandmarkList ? "Hide landmarks" : "Show landmarks"}
-            </button>
-          </div>
-        )}
-
-        {debugAllowed && debugMode && showLandmarkList && (
-          <div className="landmark-list">
-            <div className="hud-label">Landmarks (within 1km)</div>
-            {(() => {
-              const maxDistance = 1000;
-              const withDistance = fix
-                ? LANDMARKS.map((landmark) => ({
-                    landmark,
-                    distance: haversineMeters(fix, landmark)
-                  }))
-                : [];
-              const nearby = withDistance
-                .filter((entry) => entry.distance <= maxDistance)
-                .sort((a, b) => a.distance - b.distance);
-              const otherCount = LANDMARKS.length - nearby.length;
-
-              if (!fix) {
-                return <div className="landmark-item">Waiting for position...</div>;
-              }
-
-              return (
-                <>
-                  {nearby.length === 0 ? (
-                    <div className="landmark-item">No nearby landmarks.</div>
-                  ) : (
-                    nearby.map(({ landmark, distance }) => {
-                      const landmarkIndex = LANDMARKS.findIndex(
-                        (entry) => entry.id === landmark.id
-                      );
-                      const isTriggered = completedIndices.has(landmarkIndex);
-                      const isActive = landmarkIndex === counter;
-                      return (
-                        <div
-                          key={landmark.id}
-                          className={`landmark-item ${isActive ? "active" : ""}`}
-                        >
-                          <span>{landmark.name}</span>
-                          <span className="landmark-meta">
-                            {Math.round(distance)}m
-                            {isTriggered ? " · triggered" : ""}
-                          </span>
-                        </div>
-                      );
-                    })
-                  )}
-                  <div className="landmark-summary">
-                    {otherCount} other landmark{otherCount === 1 ? "" : "s"} outside 1km.
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        )}
       </div>
+
+      {modalView && (
+        <div className="modal-backdrop" onClick={() => setModalView(null)}>
+          <div className="modal" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div className="hud-label">
+                {modalView === "task"
+                  ? "Task"
+                  : modalView === "hints"
+                  ? "Past hints"
+                  : "Landmarks"}
+              </div>
+              <button
+                className="button secondary"
+                type="button"
+                onClick={() => setModalView(null)}
+              >
+                Close
+              </button>
+            </div>
+
+            {modalView === "task" && activeLandmark && (
+              <div className="modal-body">
+                <div className="modal-title">{activeLandmark.task.title}</div>
+                {taskMessage && <div className="task-message">{taskMessage}</div>}
+                <div className="task-hint">{renderHint(activeLandmark.task.hint)}</div>
+                <div className="task-meta">
+                  App: {activeLandmark.task.app}
+                  {activeDistance !== null ? ` · ${Math.round(activeDistance)}m` : ""}
+                </div>
+                <pre className="task-payload">
+                  {JSON.stringify(activeLandmark.task.payload, null, 2)}
+                </pre>
+                <button
+                  className="button secondary"
+                  type="button"
+                  disabled={openedTaskIndex !== counter}
+                  onClick={() => {
+                    setCompletedIndices((prev) => {
+                      const next = new Set(prev);
+                      next.add(counter);
+                      return next;
+                    });
+                    setOpenedTaskIndex(null);
+                    const nextIndex = counter + 1;
+                    if (nextIndex < LANDMARKS.length) {
+                      setCounter(nextIndex);
+                      setRevealedHints((prev) => {
+                        const next = new Set(prev);
+                        next.add(nextIndex);
+                        return next;
+                      });
+                      setTaskMessage(`Hint unlocked: ${LANDMARKS[nextIndex].task.title}`);
+                    } else {
+                      setCounter(LANDMARKS.length);
+                      setTaskMessage("All tasks completed.");
+                    }
+                  }}
+                >
+                  Mark resolved
+                </button>
+              </div>
+            )}
+
+            {modalView === "hints" && (
+              <div className="modal-body">
+                {hintIndices.length === 0 ? (
+                  <div className="task-meta">No hints available yet.</div>
+                ) : (
+                  <>
+                    <div className="hint-list">
+                      {hintIndices.map((index) => (
+                        <button
+                          className={`hint-item ${
+                            activeHintIndex === index ? "active" : ""
+                          }`}
+                          type="button"
+                          key={LANDMARKS[index].id}
+                          onClick={() => setSelectedHintIndex(index)}
+                        >
+                          {index + 1}. {LANDMARKS[index].task.title}
+                        </button>
+                      ))}
+                    </div>
+                    {activeHintIndex !== null && LANDMARKS[activeHintIndex] && (
+                      <div className="hint-detail">
+                        {renderHint(LANDMARKS[activeHintIndex].task.hint)}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {modalView === "landmarks" && (
+              <div className="modal-body">
+                <div className="landmark-list">
+                  <div className="hud-label">Landmarks (within 1km)</div>
+                  {(() => {
+                    const maxDistance = 1000;
+                    const withDistance = fix
+                      ? LANDMARKS.map((landmark) => ({
+                          landmark,
+                          distance: haversineMeters(fix, landmark)
+                        }))
+                      : [];
+                    const nearby = withDistance
+                      .filter((entry) => entry.distance <= maxDistance)
+                      .sort((a, b) => a.distance - b.distance);
+                    const otherCount = LANDMARKS.length - nearby.length;
+
+                    if (!fix) {
+                      return (
+                        <div className="landmark-item">Waiting for position...</div>
+                      );
+                    }
+
+                    return (
+                      <>
+                        {nearby.length === 0 ? (
+                          <div className="landmark-item">No nearby landmarks.</div>
+                        ) : (
+                          nearby.map(({ landmark, distance }) => {
+                            const landmarkIndex = LANDMARKS.findIndex(
+                              (entry) => entry.id === landmark.id
+                            );
+                            const isTriggered = completedIndices.has(landmarkIndex);
+                            const isActive = landmarkIndex === counter;
+                            return (
+                              <div
+                                key={landmark.id}
+                                className={`landmark-item ${isActive ? "active" : ""}`}
+                              >
+                                <span>{landmark.name}</span>
+                                <span className="landmark-meta">
+                                  {Math.round(distance)}m
+                                  {isTriggered ? " · triggered" : ""}
+                                </span>
+                              </div>
+                            );
+                          })
+                        )}
+                        <div className="landmark-summary">
+                          {otherCount} other landmark{otherCount === 1 ? "" : "s"}{" "}
+                          outside 1km.
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
