@@ -14,18 +14,18 @@
       },
       "hint": {
         "type": "text",
-        "value": "Find the old lady of the Parisians."
+        "value": "Find the square of the old lady of the Parisians."
       }
     }
   },
   {
     "id": "Notre-Dame",
-    "name": "Notre-Dame de Paris",
+    "name": "Notre-Dame de Paris hint",
     "lat": 48.85360701161425,
     "lng": 2.3480388257029783,
     "radiusMeters": 50,
     "task": {
-      "app": "showImage",
+      "app": "showMessage",
       "title": "Notre-Dame de Paris",
       "payload": {
         "prompt": "See your first hint.",
@@ -34,6 +34,25 @@
       "hint": {
         "type": "image",
         "value": "/hint/sacre-coeur-paris-1.webp"
+      }
+    }
+  },
+  {
+    "id": "sacre-coeur",
+    "name": "Sacré-Cœur Basilica",
+    "lat": 48.88671,
+    "lng": 2.343031,
+    "radiusMeters": 90,
+    "task": {
+      "app": "askPuzzle",
+      "title": "Fox Riddle",
+      "payload": {
+        "question": "What is a female fox",
+        "answer": "vixen"
+      },
+      "hint": {
+        "type": "text",
+        "value": "Hint: now find the tower errected for universal exhibition"
       }
     }
   },

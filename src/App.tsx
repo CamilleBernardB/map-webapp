@@ -53,6 +53,10 @@ export default function App() {
   const [modalView, setModalView] = useState<"task" | "hints" | "landmarks" | null>(
     null
   );
+  const [puzzleAnswer, setPuzzleAnswer] = useState("");
+  const [wordleInput, setWordleInput] = useState("");
+  const [wordleGuesses, setWordleGuesses] = useState<string[]>([]);
+  const [wordleMessage, setWordleMessage] = useState("");
 
   useEffect(() => {
     const handleEvent = (event: GeoEvent) => {
@@ -168,9 +172,88 @@ export default function App() {
     .sort((a, b) => a - b);
   const activeHintIndex =
     selectedHintIndex !== null ? selectedHintIndex : hintIndices[0] ?? null;
-  const isInlineTask =
-    activeLandmark?.task.app === "showMessage" ||
-    activeLandmark?.task.app === "showImage";
+  const isInlineTask = activeLandmark?.task.app === "showMessage";
+  const isPuzzleTask = activeLandmark?.task.app === "askPuzzle";
+  const isWordleTask = activeLandmark?.task.app === "askWordle";
+
+  useEffect(() => {
+    setPuzzleAnswer("");
+    setWordleInput("");
+    setWordleGuesses([]);
+    setWordleMessage("");
+  }, [counter, modalView]);
+
+  const normalizeAnswer = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .join(" ");
+  const puzzlePayload =
+    isPuzzleTask && activeLandmark && typeof activeLandmark.task.payload === "object"
+      ? (activeLandmark.task.payload as { question?: string; answer?: string })
+      : null;
+  const puzzleQuestion = puzzlePayload?.question ?? "";
+  const puzzleAnswerExpected = puzzlePayload?.answer ?? "";
+  const puzzleCorrect =
+    normalizeAnswer(puzzleAnswer) === normalizeAnswer(puzzleAnswerExpected);
+
+  const wordleAnswer =
+    isWordleTask && activeLandmark && typeof activeLandmark.task.payload === "string"
+      ? activeLandmark.task.payload
+      : "";
+  const wordleAnswerNormalized = wordleAnswer.trim().toLowerCase();
+  const wordleLength = wordleAnswerNormalized.length;
+  const wordleSolved = wordleGuesses.some(
+    (guess) => guess.toLowerCase() === wordleAnswerNormalized
+  );
+  const wordleMaxTries = 6;
+
+  const scoreWordle = (guess: string, answer: string) => {
+    const result = Array(guess.length).fill("absent");
+    const answerChars = answer.split("");
+    const used = Array(answer.length).fill(false);
+    const guessChars = guess.split("");
+
+    guessChars.forEach((char, index) => {
+      if (char === answerChars[index]) {
+        result[index] = "correct";
+        used[index] = true;
+      }
+    });
+
+    guessChars.forEach((char, index) => {
+      if (result[index] === "correct") {
+        return;
+      }
+      const matchIndex = answerChars.findIndex(
+        (answerChar, answerIndex) => !used[answerIndex] && answerChar === char
+      );
+      if (matchIndex >= 0) {
+        result[index] = "present";
+        used[matchIndex] = true;
+      }
+    });
+
+    return result as Array<"correct" | "present" | "absent">;
+  };
+
+  const handleWordleSubmit = () => {
+    if (!wordleAnswerNormalized) {
+      return;
+    }
+    if (wordleGuesses.length >= wordleMaxTries || wordleSolved) {
+      return;
+    }
+    const guess = wordleInput.trim().toLowerCase();
+    if (guess.length !== wordleLength) {
+      setWordleMessage(`Enter a ${wordleLength}-letter word.`);
+      return;
+    }
+    setWordleMessage("");
+    setWordleGuesses((prev) => [...prev, guess]);
+    setWordleInput("");
+  };
 
   return (
     <div className="app">
@@ -328,7 +411,7 @@ export default function App() {
         <div
           className="modal-backdrop"
           onClick={() => {
-            if (modalView !== "task") {
+            if (modalView !== "task" || (isPuzzleTask && !puzzleCorrect)) {
               setModalView(null);
             }
           }}
@@ -337,6 +420,10 @@ export default function App() {
             <div className="modal-header">
               <div className="hud-label">
                 {modalView === "task" && isInlineTask && activeLandmark
+                  ? activeLandmark.task.title
+                  : modalView === "task" && isPuzzleTask && activeLandmark
+                  ? activeLandmark.task.title
+                  : modalView === "task" && isWordleTask && activeLandmark
                   ? activeLandmark.task.title
                   : modalView === "task"
                   ? "Task"
@@ -361,6 +448,117 @@ export default function App() {
                       }}
                     >
                       OK
+                    </button>
+                  </>
+                ) : isPuzzleTask ? (
+                  <>
+                    <div className="modal-title">{activeLandmark.task.title}</div>
+                    <div className="task-hint">
+                      <div className="hint-text">{puzzleQuestion}</div>
+                    </div>
+                    <input
+                      className="input"
+                      value={puzzleAnswer}
+                      onChange={(event) => setPuzzleAnswer(event.target.value)}
+                      placeholder="Your answer"
+                    />
+                    {puzzleCorrect && (
+                      <div className="task-hint">{renderHint(activeLandmark.task.hint)}</div>
+                    )}
+                    <button
+                      className="button"
+                      type="button"
+                      disabled={!puzzleCorrect}
+                      onClick={() => {
+                        resolveCurrentTask();
+                        setModalView(null);
+                      }}
+                    >
+                      OK
+                    </button>
+                  </>
+                ) : isWordleTask ? (
+                  <>
+                    <div className="modal-title">{activeLandmark.task.title}</div>
+                    <div className="wordle-grid">
+                      {Array.from({ length: wordleMaxTries }).map((_, rowIndex) => {
+                        const guess = wordleGuesses[rowIndex] ?? "";
+                        const gridLength = Math.max(wordleLength, 1);
+                        const letters = guess.padEnd(gridLength, " ").split("");
+                        const scores =
+                          wordleLength > 0 && guess.length === wordleLength
+                            ? scoreWordle(guess, wordleAnswerNormalized)
+                            : Array(gridLength).fill("absent");
+                        return (
+                          <div
+                            className="wordle-row"
+                            key={`row-${rowIndex}`}
+                            style={{ gridTemplateColumns: `repeat(${gridLength}, 1fr)` }}
+                          >
+                            {letters.map((letter, colIndex) => (
+                              <div
+                                className={`wordle-tile ${
+                                  guess ? scores[colIndex] : ""
+                                }`}
+                                key={`tile-${rowIndex}-${colIndex}`}
+                              >
+                                {letter.trim().toUpperCase()}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="wordle-input">
+                      <input
+                        className="input"
+                        value={wordleInput}
+                        onChange={(event) => {
+                          const next = event.target.value.replace(/\s+/g, "");
+                          setWordleInput(next.slice(0, wordleLength));
+                        }}
+                        placeholder={`Guess (${wordleLength} letters)`}
+                        disabled={
+                          wordleLength === 0 ||
+                          wordleSolved ||
+                          wordleGuesses.length >= wordleMaxTries
+                        }
+                      />
+                      <button
+                        className="button secondary"
+                        type="button"
+                        onClick={handleWordleSubmit}
+                        disabled={
+                          wordleLength === 0 ||
+                          wordleSolved ||
+                          wordleGuesses.length >= wordleMaxTries ||
+                          wordleInput.trim().length !== wordleLength
+                        }
+                      >
+                        Submit
+                      </button>
+                    </div>
+                    {wordleMessage && <div className="task-message">{wordleMessage}</div>}
+                    {wordleSolved && (
+                      <div className="task-hint">{renderHint(activeLandmark.task.hint)}</div>
+                    )}
+                    <button
+                      className="button"
+                      type="button"
+                      disabled={!wordleSolved}
+                      onClick={() => {
+                        resolveCurrentTask();
+                        setModalView(null);
+                      }}
+                    >
+                      OK
+                    </button>
+                    <button
+                      className="button secondary"
+                      type="button"
+                      onClick={() => setModalView(null)}
+                    >
+                      Abandon
                     </button>
                   </>
                 ) : (

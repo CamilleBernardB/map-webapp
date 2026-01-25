@@ -25,7 +25,12 @@ export const appRegistry: Record<string, AppHandler> = {
       typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
     return { success: false, message };
   },
-  showImage: (payload) => {
+  askPuzzle: (payload) => {
+    const message =
+      typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
+    return { success: false, message };
+  },
+  askWordle: (payload) => {
     const message =
       typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
     return { success: false, message };
