@@ -121,6 +121,32 @@ export default function App() {
       ? activeDistance <= activeLandmark.radiusMeters
       : false;
 
+  const resolveCurrentTask = () => {
+    if (!activeLandmark) {
+      return;
+    }
+
+    setCompletedIndices((prev) => {
+      const next = new Set(prev);
+      next.add(counter);
+      return next;
+    });
+    setOpenedTaskIndex(null);
+    const nextIndex = counter + 1;
+    if (nextIndex < LANDMARKS.length) {
+      setCounter(nextIndex);
+      setRevealedHints((prev) => {
+        const next = new Set(prev);
+        next.add(nextIndex);
+        return next;
+      });
+      setTaskMessage(`Hint unlocked: ${LANDMARKS[nextIndex].task.title}`);
+    } else {
+      setCounter(LANDMARKS.length);
+      setTaskMessage("All tasks completed.");
+    }
+  };
+
   const renderHint = (hint: TaskHint) => {
     if (hint.type === "image") {
       return <img className="hint-image" src={hint.value} alt="Task hint" />;
@@ -140,6 +166,7 @@ export default function App() {
   const hintIndices = [...revealedHints].sort((a, b) => a - b);
   const activeHintIndex =
     selectedHintIndex !== null ? selectedHintIndex : hintIndices[0] ?? null;
+  const isShowMessage = activeLandmark?.task.app === "showMessage";
 
   return (
     <div className="app">
@@ -152,15 +179,21 @@ export default function App() {
       />
 
       <div className="overlay-actions">
-        {activeLandmark && activeInRange && (
+        {activeLandmark && activeInRange && !completedIndices.has(counter) && (
           <button
             className="button overlay-button"
             type="button"
-            onClick={() => {
-              runAppTask(activeLandmark.task.app, activeLandmark.task.payload);
+            onClick={async () => {
+              const result = await runAppTask(
+                activeLandmark.task.app,
+                activeLandmark.task.payload
+              );
               setOpenedTaskIndex(counter);
-              setTaskMessage(`Opened: ${activeLandmark.task.title}`);
+              setTaskMessage(result.message ?? `Opened: ${activeLandmark.task.title}`);
               setModalView("task");
+              if (result.success) {
+                resolveCurrentTask();
+              }
             }}
           >
             {activeLandmark.task.title}
@@ -316,37 +349,33 @@ export default function App() {
                   App: {activeLandmark.task.app}
                   {activeDistance !== null ? ` · ${Math.round(activeDistance)}m` : ""}
                 </div>
-                <pre className="task-payload">
-                  {JSON.stringify(activeLandmark.task.payload, null, 2)}
-                </pre>
-                <button
-                  className="button secondary"
-                  type="button"
-                  disabled={openedTaskIndex !== counter}
-                  onClick={() => {
-                    setCompletedIndices((prev) => {
-                      const next = new Set(prev);
-                      next.add(counter);
-                      return next;
-                    });
-                    setOpenedTaskIndex(null);
-                    const nextIndex = counter + 1;
-                    if (nextIndex < LANDMARKS.length) {
-                      setCounter(nextIndex);
-                      setRevealedHints((prev) => {
-                        const next = new Set(prev);
-                        next.add(nextIndex);
-                        return next;
-                      });
-                      setTaskMessage(`Hint unlocked: ${LANDMARKS[nextIndex].task.title}`);
-                    } else {
-                      setCounter(LANDMARKS.length);
-                      setTaskMessage("All tasks completed.");
-                    }
-                  }}
-                >
-                  Mark resolved
-                </button>
+                {isShowMessage ? (
+                  <button
+                    className="button"
+                    type="button"
+                    disabled={openedTaskIndex !== counter}
+                    onClick={() => {
+                      resolveCurrentTask();
+                      setModalView(null);
+                    }}
+                  >
+                    OK
+                  </button>
+                ) : (
+                  <>
+                    <pre className="task-payload">
+                      {JSON.stringify(activeLandmark.task.payload, null, 2)}
+                    </pre>
+                    <button
+                      className="button secondary"
+                      type="button"
+                      disabled={openedTaskIndex !== counter}
+                      onClick={resolveCurrentTask}
+                    >
+                      Mark resolved
+                    </button>
+                  </>
+                )}
               </div>
             )}
 

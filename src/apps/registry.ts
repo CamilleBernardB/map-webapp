@@ -1,25 +1,42 @@
 import type { JsonValue } from "../types/task";
 
-export type AppHandler = (payload: JsonValue) => void | Promise<void>;
+export type AppResult = {
+  success: boolean;
+  message?: string;
+};
+
+export type AppHandler = (payload: JsonValue) => AppResult | Promise<AppResult>;
 
 export const appRegistry: Record<string, AppHandler> = {
   photoPrompt: (payload) => {
     console.info("[app:photoPrompt] payload", payload);
+    return { success: false };
   },
   triviaCard: (payload) => {
     console.info("[app:triviaCard] payload", payload);
+    return { success: false };
   },
   audioPing: (payload) => {
     console.info("[app:audioPing] payload", payload);
+    return { success: false };
+  },
+  showMessage: (payload) => {
+    const message =
+      typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
+    return { success: false, message };
   }
 };
 
-export const runAppTask = (appName: string, payload: JsonValue) => {
+export const runAppTask = async (
+  appName: string,
+  payload: JsonValue
+): Promise<AppResult> => {
   const handler = appRegistry[appName];
   if (!handler) {
-    console.warn(`[app-registry] Missing app "${appName}"`, payload);
-    return;
+    const message = `[app-registry] Missing app "${appName}"`;
+    console.warn(message, payload);
+    return { success: false, message };
   }
 
-  void handler(payload);
+  return handler(payload);
 };

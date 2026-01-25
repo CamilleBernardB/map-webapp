@@ -6,7 +6,7 @@
     "lng": 2.348039397246975,
     "radiusMeters": 3500,
     "task": {
-      "app": "photoPrompt",
+      "app": "showMessage",
       "title": "Welcome to Paris!",
       "payload": {
         "prompt": "See your first hint.",
@@ -17,7 +17,27 @@
         "value": "Find the old lady of the Parisians."
       }
     }
-  },  {
+  },
+  {
+    "id": "Notre-Dame",
+    "name": "Notre-Dame de Paris",
+    "lat": 48.85360701161425,
+    "lng": 2.3480388257029783,
+    "radiusMeters": 50,
+    "task": {
+      "app": "showMessage",
+      "title": "Notre-Dame de Paris",
+      "payload": {
+        "prompt": "See your first hint.",
+        "reward": 50
+      },
+      "hint": {
+        "type": "text",
+        "value": "Go to Sacré Coeur!"
+      }
+    }
+  },
+  {
     "id": "pier-39",
     "name": "Pier 39",
     "lat": 37.808673,
