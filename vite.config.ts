@@ -1,8 +1,24 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const useHttps = process.env.VITE_DEV_HTTPS === "true";
+const https =
+  useHttps &&
+  existsSync(resolve(__dirname, "certs/dev-key.pem")) &&
+  existsSync(resolve(__dirname, "certs/dev-cert.pem"))
+    ? {
+        key: readFileSync(resolve(__dirname, "certs/dev-key.pem")),
+        cert: readFileSync(resolve(__dirname, "certs/dev-cert.pem"))
+      }
+    : undefined;
 
 export default defineConfig({
+  server: https ? { https } : undefined,
   plugins: [
     react(),
     VitePWA({

@@ -13,6 +13,15 @@ npm install
 
 ```bash
 npm run dev
+npm run dev -- --host --port 5173 # if remote access
+```
+
+## (Optional) HTTPS Dev Server
+
+Requires `certs/dev-key.pem` and `certs/dev-cert.pem` in the project root.
+
+```bash
+VITE_DEV_HTTPS=true npm run dev -- --host
 ```
 
 ## Build
