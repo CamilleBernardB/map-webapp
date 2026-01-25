@@ -1,0 +1,1 @@
+{"name":"PWA Location Game","short_name":"GeoGame","start_url":"/map-webapp/","display":"standalone","background_color":"#0f172a","lang":"en","scope":"/map-webapp/","description":"Minimal location-based game PWA","theme_color":"#0f172a","icons":[{"src":"/icons/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"/icons/icon-512.png","sizes":"512x512","type":"image/png"}]}
