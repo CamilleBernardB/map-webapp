@@ -39,31 +39,37 @@ export default function MapView({ fix, follow, status }: MapViewProps) {
       import.meta.env.VITE_TILE_URL ??
       "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: {
-        version: 8,
-        sources: {
-          osm: {
-            type: "raster",
-            tiles: [tileUrl],
-            tileSize: 256,
-            attribution: "© OpenStreetMap contributors"
-          }
+    let map: Map;
+    try {
+      map = new maplibregl.Map({
+        container: containerRef.current,
+        style: {
+          version: 8,
+          sources: {
+            osm: {
+              type: "raster",
+              tiles: [tileUrl],
+              tileSize: 256,
+              attribution: "© OpenStreetMap contributors"
+            }
+          },
+          layers: [
+            {
+              id: "osm",
+              type: "raster",
+              source: "osm"
+            }
+          ]
         },
-        layers: [
-          {
-            id: "osm",
-            type: "raster",
-            source: "osm"
-          }
-        ]
-      },
-      center: DEFAULT_CENTER,
-      zoom: 15,
-      pitch: 0,
-      bearing: 0
-    });
+        center: DEFAULT_CENTER,
+        zoom: 15,
+        pitch: 0,
+        bearing: 0
+      });
+    } catch (error) {
+      console.error("MapLibre init failed", error);
+      return;
+    }
 
     const markerEl = document.createElement("div");
     markerEl.className = "map-marker";
@@ -78,6 +84,8 @@ export default function MapView({ fix, follow, status }: MapViewProps) {
     return () => {
       marker.remove();
       map.remove();
+      markerRef.current = null;
+      mapRef.current = null;
     };
   }, []);
 
