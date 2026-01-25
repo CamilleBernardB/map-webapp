@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import MapView from "./components/MapView";
+import landmarksData from "./data/landmarks.json";
 import {
   createGeoWatcher,
   type GeoEvent,
   type GeoFix,
   type GeoStatus
 } from "./services/geolocation";
+import type { Landmark } from "./types/landmark";
+
+const LANDMARKS = landmarksData as Landmark[];
 
 const STATUS_LABELS: Record<GeoStatus, string> = {
   idle: "Idle",
@@ -38,6 +42,8 @@ export default function App() {
   const [manualLat, setManualLat] = useState("37.7749");
   const [manualLng, setManualLng] = useState("-122.4194");
   const [manualAccuracy, setManualAccuracy] = useState("10");
+  const [triggeredIds, setTriggeredIds] = useState<Set<string>>(() => new Set());
+  const [activeLandmark, setActiveLandmark] = useState<Landmark | null>(null);
 
   useEffect(() => {
     const handleEvent = (event: GeoEvent) => {
@@ -85,6 +91,55 @@ export default function App() {
     }
   };
 
+  const toRadians = (value: number) => (value * Math.PI) / 180;
+  const haversineMeters = (a: GeoFix, b: Landmark) => {
+    const earthRadius = 6371000;
+    const dLat = toRadians(b.lat - a.lat);
+    const dLng = toRadians(b.lng - a.lng);
+    const lat1 = toRadians(a.lat);
+    const lat2 = toRadians(b.lat);
+    const sinLat = Math.sin(dLat / 2);
+    const sinLng = Math.sin(dLng / 2);
+    const h = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLng * sinLng;
+    return 2 * earthRadius * Math.asin(Math.min(1, Math.sqrt(h)));
+  };
+
+  useEffect(() => {
+    if (!fix) {
+      setActiveLandmark(null);
+      return;
+    }
+
+    let nearest: { landmark: Landmark; distance: number } | null = null;
+    const newlyTriggered: Landmark[] = [];
+
+    LANDMARKS.forEach((landmark) => {
+      const distance = haversineMeters(fix, landmark);
+      if (!nearest || distance < nearest.distance) {
+        nearest = { landmark, distance };
+      }
+      if (distance <= landmark.radiusMeters && !triggeredIds.has(landmark.id)) {
+        newlyTriggered.push(landmark);
+      }
+    });
+
+    if (nearest && nearest.distance <= nearest.landmark.radiusMeters) {
+      setActiveLandmark(nearest.landmark);
+    } else {
+      setActiveLandmark(null);
+    }
+
+    if (newlyTriggered.length > 0) {
+      setTriggeredIds((prev) => {
+        const next = new Set(prev);
+        newlyTriggered.forEach((landmark) => next.add(landmark.id));
+        return next;
+      });
+      // TODO: Trigger game logic here for newlyTriggered landmarks.
+      setStatusMessage(`Triggered: ${newlyTriggered.map((l) => l.name).join(", ")}`);
+    }
+  }, [fix, triggeredIds]);
+
   const latText = fix ? fix.lat.toFixed(6) : "--";
   const lngText = fix ? fix.lng.toFixed(6) : "--";
   const accuracyText = fix ? `${Math.round(fix.accuracy)} m` : "--";
@@ -95,7 +150,13 @@ export default function App() {
 
   return (
     <div className="app">
-      <MapView fix={fix} follow={follow} status={status} />
+      <MapView
+        fix={fix}
+        follow={follow}
+        status={status}
+        debugMode={debugAllowed && debugMode}
+        landmarks={LANDMARKS}
+      />
 
       <div className="hud">
         <div className="hud-row">
@@ -193,6 +254,29 @@ export default function App() {
             <button className="button" type="button" onClick={handleApplyManual}>
               Apply
             </button>
+          </div>
+        )}
+
+        {debugAllowed && debugMode && (
+          <div className="landmark-list">
+            <div className="hud-label">Landmarks</div>
+            {LANDMARKS.map((landmark) => {
+              const distance = fix ? haversineMeters(fix, landmark) : null;
+              const isTriggered = triggeredIds.has(landmark.id);
+              const isActive = activeLandmark?.id === landmark.id;
+              return (
+                <div
+                  key={landmark.id}
+                  className={`landmark-item ${isActive ? "active" : ""}`}
+                >
+                  <span>{landmark.name}</span>
+                  <span className="landmark-meta">
+                    {distance ? `${Math.round(distance)}m` : "--"}
+                    {isTriggered ? " · triggered" : ""}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

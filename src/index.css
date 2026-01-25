@@ -171,6 +171,44 @@ body {
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
 }
 
+.landmark-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.landmark-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  font-size: 13px;
+}
+
+.landmark-item.active {
+  border-color: rgba(56, 189, 248, 0.8);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+}
+
+.landmark-meta {
+  color: rgba(226, 232, 240, 0.7);
+  font-size: 12px;
+}
+
+.landmark-marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #f97316;
+  border: 2px solid #fff7ed;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.6);
+  transform: rotate(45deg);
+}
+
 .map-marker {
   width: 18px;
   height: 18px;

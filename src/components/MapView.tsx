@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import maplibregl, { Map, Marker } from "maplibre-gl";
 import type { GeoFix, GeoStatus } from "../services/geolocation";
 import { createSmoother } from "../services/smoothing";
+import type { Landmark } from "../types/landmark";
 
 const DEFAULT_CENTER: [number, number] = [-122.4194, 37.7749];
 const CAMERA_DEBOUNCE_MS = 250;
@@ -10,12 +11,21 @@ type MapViewProps = {
   fix: GeoFix | null;
   follow: boolean;
   status: GeoStatus;
+  debugMode: boolean;
+  landmarks: Landmark[];
 };
 
-export default function MapView({ fix, follow, status }: MapViewProps) {
+export default function MapView({
+  fix,
+  follow,
+  status,
+  debugMode,
+  landmarks
+}: MapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
   const markerRef = useRef<Marker | null>(null);
+  const landmarkMarkersRef = useRef<Marker[]>([]);
   const smootherRef = useRef(createSmoother());
   const followRef = useRef(follow);
   const statusRef = useRef(status);
@@ -83,6 +93,8 @@ export default function MapView({ fix, follow, status }: MapViewProps) {
 
     return () => {
       marker.remove();
+      landmarkMarkersRef.current.forEach((landmarkMarker) => landmarkMarker.remove());
+      landmarkMarkersRef.current = [];
       map.remove();
       markerRef.current = null;
       mapRef.current = null;
@@ -94,6 +106,31 @@ export default function MapView({ fix, follow, status }: MapViewProps) {
       smootherRef.current.setTarget(fix);
     }
   }, [fix]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      return;
+    }
+
+    landmarkMarkersRef.current.forEach((marker) => marker.remove());
+    landmarkMarkersRef.current = [];
+
+    if (!debugMode) {
+      return;
+    }
+
+    const markers = landmarks.map((landmark) => {
+      const markerEl = document.createElement("div");
+      markerEl.className = "landmark-marker";
+      markerEl.title = landmark.name;
+      return new maplibregl.Marker({ element: markerEl, anchor: "center" })
+        .setLngLat([landmark.lng, landmark.lat])
+        .addTo(map);
+    });
+
+    landmarkMarkersRef.current = markers;
+  }, [debugMode, landmarks]);
 
   useEffect(() => {
     const tick = (now: number) => {

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "pier-39",
+    "name": "Pier 39",
+    "lat": 37.808673,
+    "lng": -122.409821,
+    "radiusMeters": 35
+  },
+  {
+    "id": "mission-dolores",
+    "name": "Mission Dolores Park",
+    "lat": 37.759615,
+    "lng": -122.426906,
+    "radiusMeters": 40
+  }
+]
