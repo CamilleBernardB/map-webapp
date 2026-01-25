@@ -492,7 +492,12 @@ export default function App() {
         <div
           className="modal-backdrop"
           onClick={() => {
-            if (modalView !== "task" || (isPuzzleTask && !puzzleCorrect)) {
+            if (
+              modalView !== "task" ||
+              (isPuzzleTask && !puzzleCorrect) ||
+              isWordleTask ||
+              isFifteenTask
+            ) {
               setModalView(null);
             }
           }}
