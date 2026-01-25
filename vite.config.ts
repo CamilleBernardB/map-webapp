@@ -18,6 +18,10 @@ const https =
     : undefined;
 
 export default defineConfig({
+  base: "/map-webapp/",
+  build: {
+    outDir: "docs"
+  },
   server: https ? { https } : undefined,
   plugins: [
     react(),
@@ -31,7 +35,8 @@ export default defineConfig({
         theme_color: "#0f172a",
         background_color: "#0f172a",
         display: "standalone",
-        start_url: "/",
+        start_url: "/map-webapp/",
+        scope: "/map-webapp/",
         icons: [
           {
             src: "/icons/icon-192.png",
