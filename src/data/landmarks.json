@@ -4,20 +4,39 @@
     "name": "Pier 39",
     "lat": 37.808673,
     "lng": -122.409821,
-    "radiusMeters": 35
+    "radiusMeters": 35,
+    "task": {
+      "app": "photoPrompt",
+      "payload": {
+        "prompt": "Capture the sea lions and the bay view.",
+        "reward": 50
+      }
+    }
   },
   {
     "id": "mission-dolores",
     "name": "Mission Dolores Park",
     "lat": 37.759615,
     "lng": -122.426906,
-    "radiusMeters": 40
+    "radiusMeters": 40,
+    "task": {
+      "app": "triviaCard",
+      "payload": [
+        "Find the historic Mission façade.",
+        "Spot the palm grove on the hill.",
+        "Share your favorite park view."
+      ]
+    }
   },
   {
     "id": "notre-dame-basilica",
     "name": "Notre-Dame de Paris",
     "lat": 48.853579,
     "lng": 2.348025,
-    "radiusMeters": 50
+    "radiusMeters": 50,
+    "task": {
+      "app": "audioPing",
+      "payload": "Play the bell chime and show a restoration update."
+    }
   }
 ]

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import MapView from "./components/MapView";
 import landmarksData from "./data/landmarks.json";
+import { runAppTask } from "./apps/registry";
 import {
   createGeoWatcher,
   type GeoEvent,
@@ -135,7 +136,9 @@ export default function App() {
         newlyTriggered.forEach((landmark) => next.add(landmark.id));
         return next;
       });
-      // TODO: Trigger game logic here for newlyTriggered landmarks.
+      newlyTriggered.forEach((landmark) => {
+        runAppTask(landmark.task.app, landmark.task.payload);
+      });
       setStatusMessage(`Triggered: ${newlyTriggered.map((l) => l.name).join(", ")}`);
     }
   }, [fix, triggeredIds]);
