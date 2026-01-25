@@ -57,6 +57,7 @@ export default function App() {
   const [wordleInput, setWordleInput] = useState("");
   const [wordleGuesses, setWordleGuesses] = useState<string[]>([]);
   const [wordleMessage, setWordleMessage] = useState("");
+  const [fifteenTiles, setFifteenTiles] = useState<number[]>([]);
 
   useEffect(() => {
     const handleEvent = (event: GeoEvent) => {
@@ -175,12 +176,14 @@ export default function App() {
   const isInlineTask = activeLandmark?.task.app === "showMessage";
   const isPuzzleTask = activeLandmark?.task.app === "askPuzzle";
   const isWordleTask = activeLandmark?.task.app === "askWordle";
+  const isFifteenTask = activeLandmark?.task.app === "askFifteen";
 
   useEffect(() => {
     setPuzzleAnswer("");
     setWordleInput("");
     setWordleGuesses([]);
     setWordleMessage("");
+    setFifteenTiles([]);
   }, [counter, modalView]);
 
   const normalizeAnswer = (value: string) =>
@@ -198,10 +201,20 @@ export default function App() {
   const puzzleCorrect =
     normalizeAnswer(puzzleAnswer) === normalizeAnswer(puzzleAnswerExpected);
 
-  const wordleAnswer =
-    isWordleTask && activeLandmark && typeof activeLandmark.task.payload === "string"
-      ? activeLandmark.task.payload
-      : "";
+  const wordleAnswer = (() => {
+    if (!isWordleTask || !activeLandmark) {
+      return "";
+    }
+    const payload = activeLandmark.task.payload;
+    if (typeof payload === "string") {
+      return payload;
+    }
+    if (payload && typeof payload === "object" && "word" in payload) {
+      const word = (payload as { word?: string }).word;
+      return typeof word === "string" ? word : "";
+    }
+    return "";
+  })();
   const wordleAnswerNormalized = wordleAnswer.trim().toLowerCase();
   const wordleLength = wordleAnswerNormalized.length;
   const wordleSolved = wordleGuesses.some(
@@ -253,6 +266,74 @@ export default function App() {
     setWordleMessage("");
     setWordleGuesses((prev) => [...prev, guess]);
     setWordleInput("");
+  };
+
+  const fifteenImageUrl = (() => {
+    if (!isFifteenTask || !activeLandmark) {
+      return "";
+    }
+    const payload = activeLandmark.task.payload;
+    if (typeof payload === "string") {
+      return payload;
+    }
+    if (payload && typeof payload === "object" && "imageUrl" in payload) {
+      const imageUrl = (payload as { imageUrl?: string }).imageUrl;
+      return typeof imageUrl === "string" ? imageUrl : "";
+    }
+    return "";
+  })();
+
+  useEffect(() => {
+    if (!isFifteenTask || modalView !== "task") {
+      return;
+    }
+    const nextTiles = [...Array(15).keys()].map((value) => value + 1).concat(0);
+    const randomMoves = 100;
+    const getNeighbors = (emptyIndex: number) => {
+      const neighbors: number[] = [];
+      const row = Math.floor(emptyIndex / 4);
+      const col = emptyIndex % 4;
+      if (row > 0) neighbors.push(emptyIndex - 4);
+      if (row < 3) neighbors.push(emptyIndex + 4);
+      if (col > 0) neighbors.push(emptyIndex - 1);
+      if (col < 3) neighbors.push(emptyIndex + 1);
+      return neighbors;
+    };
+    let emptyIndex = nextTiles.indexOf(0);
+    for (let i = 0; i < randomMoves; i += 1) {
+      const neighbors = getNeighbors(emptyIndex);
+      const swapIndex = neighbors[Math.floor(Math.random() * neighbors.length)];
+      [nextTiles[emptyIndex], nextTiles[swapIndex]] = [
+        nextTiles[swapIndex],
+        nextTiles[emptyIndex]
+      ];
+      emptyIndex = swapIndex;
+    }
+    setFifteenTiles(nextTiles);
+  }, [isFifteenTask, modalView, counter]);
+
+  const isFifteenSolved =
+    fifteenTiles.length === 16 &&
+    fifteenTiles.every((value, index) =>
+      index === 15 ? value === 0 : value === index + 1
+    );
+
+  const handleFifteenMove = (index: number) => {
+    if (fifteenTiles.length !== 16) {
+      return;
+    }
+    const emptyIndex = fifteenTiles.indexOf(0);
+    const row = Math.floor(index / 4);
+    const col = index % 4;
+    const emptyRow = Math.floor(emptyIndex / 4);
+    const emptyCol = emptyIndex % 4;
+    const isAdjacent = Math.abs(row - emptyRow) + Math.abs(col - emptyCol) === 1;
+    if (!isAdjacent) {
+      return;
+    }
+    const nextTiles = [...fifteenTiles];
+    [nextTiles[emptyIndex], nextTiles[index]] = [nextTiles[index], nextTiles[emptyIndex]];
+    setFifteenTiles(nextTiles);
   };
 
   return (
@@ -425,6 +506,8 @@ export default function App() {
                   ? activeLandmark.task.title
                   : modalView === "task" && isWordleTask && activeLandmark
                   ? activeLandmark.task.title
+                  : modalView === "task" && isFifteenTask && activeLandmark
+                  ? activeLandmark.task.title
                   : modalView === "task"
                   ? "Task"
                   : modalView === "hints"
@@ -559,6 +642,72 @@ export default function App() {
                       onClick={() => setModalView(null)}
                     >
                       Abandon
+                    </button>
+                  </>
+                ) : isFifteenTask ? (
+                  <>
+                    <div className="modal-title">{activeLandmark.task.title}</div>
+                    <div className="fifteen-grid">
+                      {(fifteenTiles.length === 16
+                        ? fifteenTiles
+                        : [...Array(15).keys()].map((value) => value + 1).concat(0)
+                      ).map((value, index) => {
+                        const empty = value === 0;
+                        const isMovable = (() => {
+                          if (empty || fifteenTiles.length !== 16) {
+                            return false;
+                          }
+                          const emptyIndex = fifteenTiles.indexOf(0);
+                          const row = Math.floor(index / 4);
+                          const col = index % 4;
+                          const emptyRow = Math.floor(emptyIndex / 4);
+                          const emptyCol = emptyIndex % 4;
+                          return Math.abs(row - emptyRow) + Math.abs(col - emptyCol) === 1;
+                        })();
+                        const tileIndex = value - 1;
+                        const row = Math.floor(tileIndex / 4);
+                        const col = tileIndex % 4;
+                        return (
+                          <button
+                            key={`tile-${value}-${index}`}
+                            type="button"
+                            className={`fifteen-tile ${
+                              empty ? "empty" : isMovable ? "movable" : ""
+                            }`}
+                            onClick={() => handleFifteenMove(index)}
+                            disabled={empty}
+                            style={
+                              empty
+                                ? undefined
+                                : {
+                                    backgroundImage: fifteenImageUrl
+                                      ? `url(${fifteenImageUrl})`
+                                      : "none",
+                                    backgroundSize: "400% 400%",
+                                    backgroundPosition: `${(col / 3) * 100}% ${
+                                      (row / 3) * 100
+                                    }%`
+                                  }
+                            }
+                          >
+                            {!fifteenImageUrl && value !== 0 ? value : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {isFifteenSolved && (
+                      <div className="task-hint">{renderHint(activeLandmark.task.hint)}</div>
+                    )}
+                    <button
+                      className="button"
+                      type="button"
+                      disabled={!isFifteenSolved}
+                      onClick={() => {
+                        resolveCurrentTask();
+                        setModalView(null);
+                      }}
+                    >
+                      OK
                     </button>
                   </>
                 ) : (

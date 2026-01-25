@@ -34,6 +34,11 @@ export const appRegistry: Record<string, AppHandler> = {
     const message =
       typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
     return { success: false, message };
+  },
+  askFifteen: (payload) => {
+    const message =
+      typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
+    return { success: false, message };
   }
 };
 

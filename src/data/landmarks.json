@@ -1,5 +1,21 @@
 [
   {
+    "id": "louvre-puzzle",
+    "name": "Louvre Museum",
+    "lat": 48.860611,
+    "lng": 2.337644,
+    "radiusMeters": 3500,
+    "task": {
+      "app": "askFifteen",
+      "title": "Glass Pyramid Puzzle",
+      "payload": "/hint/1973_Simca_1000_GL.JPG",
+      "hint": {
+        "type": "text",
+        "value": "Seek the pyramid of glass at the grand museum courtyard."
+      }
+    }
+  },
+  {
     "id": "StartPoint0",
     "name": "Welcome",
     "lat": 48.85358485204833,
@@ -8,10 +24,7 @@
     "task": {
       "app": "askWordle",
       "title": "Welcome to Paris 0 !",
-      "payload": {
-        "answer": "fixer",
-        "reward": 50
-      },
+      "payload": "fixer",
       "hint": {
         "type": "text",
         "value": "Go to the infernal place."
@@ -52,7 +65,7 @@
       },
       "hint": {
         "type": "image",
-        "value": "/hint/sacre-coeur-paris-1.webp"
+        "value": "/hint/sacre-coeur-paris-1.jpg"
       }
     }
   },
