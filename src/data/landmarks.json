@@ -8,7 +8,7 @@
     "task": {
       "app": "askFifteen",
       "title": "Glass Pyramid Puzzle",
-      "payload": "/hint/1973_Simca_1000_GL.JPG",
+      "payload": "hint/1973_Simca_1000_GL.JPG",
       "hint": {
         "type": "text",
         "value": "Seek the pyramid of glass at the grand museum courtyard."
@@ -65,7 +65,7 @@
       },
       "hint": {
         "type": "image",
-        "value": "/hint/sacre-coeur-paris-1.jpg"
+        "value": "hint/sacre-coeur-paris-1.jpg"
       }
     }
   },
