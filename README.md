@@ -123,10 +123,3 @@ The landmarks are played in the order of the file. The `hint` can be text or an 
 - Game progress is kept in memory. It is lost when you reload the page.
 - The default map center is San Francisco until the first GPS fix arrives.
 
-## My contribution
-
-<!-- TODO: say in 2-3 lines what you built yourself, e.g. the GPS smoothing, the Wordle task, the PWA setup. -->
-
-## License
-
-<!-- TODO: add a license (for example MIT), or remove this section. -->
